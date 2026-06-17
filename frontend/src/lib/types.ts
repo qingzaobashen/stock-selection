@@ -67,6 +67,7 @@ export interface StockWithQuote extends Stock {
   pe_ttm: number | null
   pb: number | null
   roe: number | null
+  revenue_growth: number | null
 }
 
 export interface ScreenerFilters {

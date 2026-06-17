@@ -3,6 +3,7 @@
 import { Table, Typography, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { StockWithQuote } from "@/lib/types";
+import Link from "next/link";
 
 interface StockTableProps {
   stocks: StockWithQuote[]
@@ -17,10 +18,10 @@ export function StockTable({ stocks, loading = false, showIndustry = false }: St
       dataIndex: "code",
       key: "code",
       width: 100,
-      render: (code: string) => (
-        <Typography.Text copyable={{ text: code }} style={{ fontFamily: "monospace", fontSize: 13 }}>
+      render: (code: string, record: StockWithQuote) => (
+        <Link href={`/stocks/${code}`} style={{ fontFamily: "monospace", fontSize: 13, color: "var(--color-text)" }}>
           {code}
-        </Typography.Text>
+        </Link>
       ),
     },
     {
@@ -28,10 +29,10 @@ export function StockTable({ stocks, loading = false, showIndustry = false }: St
       dataIndex: "name",
       key: "name",
       width: 120,
-      render: (name: string) => (
-        <Typography.Text strong style={{ fontSize: 13 }}>
+      render: (name: string, record: StockWithQuote) => (
+        <Link href={`/stocks/${record.code}`} style={{ fontWeight: 600, fontSize: 13, color: "var(--color-text)" }}>
           {name}
-        </Typography.Text>
+        </Link>
       ),
     },
     ...(showIndustry

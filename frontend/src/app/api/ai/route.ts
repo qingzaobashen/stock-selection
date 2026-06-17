@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
 
     // Call AI API
     const apiKey = process.env.AI_API_KEY;
-    const baseUrl = process.env.AI_API_BASE_URL || "https://api.deepseek.com";
-    const model = process.env.AI_MODEL || "deepseek-chat";
+    const baseUrl = process.env.AI_API_BASE_URL || "https://apihub.agnes-ai.com/v1";
+    const model = process.env.AI_MODEL || "agnes-2.0-flash";
 
     if (!apiKey) {
       return NextResponse.json(

@@ -9,23 +9,40 @@ async function getMarketOverview() {
     .from("industries")
     .select("*")
     .eq("level", 1)
-    .order("name");
+    .order("name") as { data: Industry[] | null };
 
   const today = new Date().toISOString().slice(0, 10);
-  const { data: quotes } = await supabase
-    .from("daily_quotes")
-    .select("stock_code, change_pct, amount")
-    .eq("trade_date", today)
-    .limit(5000);
+  const [quotesRes, stocksRes] = await Promise.all([
+    supabase
+      .from("daily_quotes")
+      .select("stock_code, change_pct, amount")
+      .eq("trade_date", today),
+    supabase
+      .from("stocks")
+      .select("code, industry_code"),
+  ]);
 
-  return {
-    industries: (industries ?? []) as Industry[],
-    quotes: (quotes ?? []) as DailyQuote[],
-  };
-}
+  const quotes = (quotesRes.data ?? []) as DailyQuote[];
+  const stocks = (stocksRes.data ?? []) as { code: string; industry_code: string }[];
 
-export default async function HomePage() {
-  const { industries, quotes } = await getMarketOverview();
+  // Build stock_code → industry_code map
+  const stockIndustryMap = new Map<string, string>();
+  for (const s of stocks) {
+    if (s.industry_code) stockIndustryMap.set(s.code, s.industry_code);
+  }
+
+  // Group quotes by industry_code
+  const industryData = new Map<string, { amounts: number[]; changes: number[] }>();
+  for (const q of quotes) {
+    const indCode = stockIndustryMap.get(q.stock_code);
+    if (!indCode) continue;
+    if (!industryData.has(indCode)) {
+      industryData.set(indCode, { amounts: [], changes: [] });
+    }
+    const entry = industryData.get(indCode)!;
+    if (q.amount != null) entry.amounts.push(q.amount);
+    if (q.change_pct != null) entry.changes.push(q.change_pct);
+  }
 
   const totalAmount = quotes.reduce((sum, q) => sum + (q.amount ?? 0), 0);
   const avgChange =
@@ -35,19 +52,41 @@ export default async function HomePage() {
   const upCount = quotes.filter((q) => (q.change_pct ?? 0) > 0).length;
   const downCount = quotes.filter((q) => (q.change_pct ?? 0) < 0).length;
 
-  const industriesWithQuotes: IndustryWithQuote[] = industries.map((ind) => ({
-    ...ind,
-    change_pct: null,
-    amount: null,
-  }));
+  const indList = industries ?? [];
+  const industriesWithQuotes: IndustryWithQuote[] = indList.map((ind) => {
+    const d = industryData.get(ind.code);
+    const changes = d?.changes ?? [];
+    const amounts = d?.amounts ?? [];
+    return {
+      ...ind,
+      change_pct: changes.length > 0
+        ? changes.reduce((s, v) => s + v, 0) / changes.length
+        : null,
+      amount: amounts.length > 0
+        ? amounts.reduce((s, v) => s + v, 0)
+        : null,
+    };
+  });
+
+  return {
+    industries: industriesWithQuotes,
+    totalAmount,
+    avgChange,
+    upCount,
+    downCount,
+  };
+}
+
+export default async function HomePage() {
+  const overview = await getMarketOverview();
 
   return (
     <HomeContent
-      industries={industriesWithQuotes}
-      totalAmount={totalAmount}
-      avgChange={avgChange}
-      upCount={upCount}
-      downCount={downCount}
+      industries={overview.industries}
+      totalAmount={overview.totalAmount}
+      avgChange={overview.avgChange}
+      upCount={overview.upCount}
+      downCount={overview.downCount}
     />
   );
 }
