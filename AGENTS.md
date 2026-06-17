@@ -119,11 +119,18 @@ npm run build
 npm run start        # = next start -p 3000
 ```
 
-## Status (as of Jun 16, 2026)
+## Status (as of Jun 17, 2026)
 - ✅ All dependencies installed (Next.js 16.2.9, antd 6.4.4, echarts, supabase-js, tailwindcss 4)
 - ✅ Database tables created + seed data (15 industries, 15 stocks, 15 quotes, 15 financial records)
 - ✅ All page/layout/API files written with correct server/client split
 - ✅ Build passes (0 errors)
-- 🔜 Push to GitHub → configure Actions → first data collection run
-- 🔜 Configure AI API → verify AI insight cards work
+- ✅ AI API config fixed (defaults: apihub.agnes-ai.com/v1, agnes-2.0-flash)
+- ✅ Home page aggregates industry-level quotes from daily_quotes
+- ✅ Stock detail page created (`/stocks/[code]`) with quote + financial + AI insight
+- ✅ StockTable links to stock detail page
+- ✅ Redundant prompt code cleaned from lib/ai.ts
+- ✅ Git pushed to github.com/qingzaobashen/stock-selection
+- ✅ GitHub Actions Secrets configured (SUPABASE_URL, SUPABASE_SERVICE_KEY, AI_API_KEY)
+- 🔜 Data collection Actions triggered — verify run status at GitHub Actions tab
 - 🔜 Verify all routes render correctly in browser at http://100.107.49.116:3000
+- 🔜 Verify AI insight cards work with real API key
